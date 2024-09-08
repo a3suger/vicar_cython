@@ -1,9 +1,7 @@
-import zlib
 import hashlib
-import array
 import sys
 
-from typing import List, Literal
+from typing import List
 
 
 def output_at_count_up(counter, index, item_set, stored_data, start, end, count):
@@ -22,8 +20,8 @@ def output_at_rewrite(counter, index, item_set, stored_date, start, end, count):
     print('REW:{:10d} {:10d} {:10d} {:10d} {:5d}'.format(counter, index, start, end - start, count))
 
 
-def my_hash(rawdata, value):
-    target = rawdata.copy()
+def my_hash(rawdata :bytearray, value:int) -> int:
+    target :bytearray = rawdata.copy()
     target.append(value)
     return int.from_bytes(hashlib.md5(target).digest(), byteorder=sys.byteorder)
 
@@ -50,11 +48,11 @@ class Vicar:
         self.item_set_table_end: List[int] = [0] * Vicar.SIZE_OF_TABLE
         self.line_counter: int = 0
         self.not_make_pattern: List[int] = [2 ** Vicar.N - 1]  # all bit are WILDCARD
-        self.used_item_set = 0
+        self.used_item_set :int = 0
 
     @classmethod
     def set_nth_item_a_wildcard(cls, item_set: bytearray, n: int) -> bytearray:
-        byte_length = Vicar.SIZE_OF_ITEM
+        byte_length : int = Vicar.SIZE_OF_ITEM
         ret_val = bytearray(byte_length)
         ret_val[:] = item_set[n * Vicar.SIZE_OF_ITEM:(n + 1) * Vicar.SIZE_OF_ITEM]
         item_set[n * Vicar.SIZE_OF_ITEM:(n + 1) * Vicar.SIZE_OF_ITEM] = bytes([255] * Vicar.SIZE_OF_ITEM)
@@ -66,8 +64,8 @@ class Vicar:
 
     @classmethod
     def is_nth_item_a_wildcard(cls, item_set: bytearray, n: int) -> bool:
-        comp_value = bytes([255] * Vicar.SIZE_OF_ITEM)
-        target_value = item_set[n * Vicar.SIZE_OF_ITEM:(n + 1) * Vicar.SIZE_OF_ITEM]
+        comp_value :bytes = bytes([255] * Vicar.SIZE_OF_ITEM)
+        target_value :bytearray = item_set[n * Vicar.SIZE_OF_ITEM:(n + 1) * Vicar.SIZE_OF_ITEM]
         return comp_value == target_value
 
     @classmethod
@@ -87,7 +85,7 @@ class Vicar:
         # A function that checks whether the item set satisfies the constraints.
         # constraints: When item values are expressed as bits, all bits are not allowed to be 1.
         def is_satisfied_a_constraint(item_set: bytearray) -> bool:
-            for i in range(Vicar.N):
+            for i  in range(Vicar.N):
                 if Vicar.is_nth_item_a_wildcard(item_set, i):
                     return False
             return True
@@ -100,8 +98,8 @@ class Vicar:
 
         def table_store(item_set: bytearray, time_data: int) -> int:
             # The return value of this function is greater than or equal to 0 and less than or equal to SIZE_OF_TABLE.
-            def hash_for_index(raw_data: bytearray, value: int):
-                val = self.hash_function(raw_data, value)
+            def hash_for_index(raw_data: bytearray, value: int) -> int:
+                val : int = self.hash_function(raw_data, value)
                 return val & Vicar.SIZE_OF_TABLE
 
             def set_entry_into_table(index: int, item_set: bytearray, time_data: int) -> int:
@@ -169,9 +167,9 @@ class Vicar:
                 value += 1
                 if counter == Vicar.MAX_RETRY:
                     break
-            min_sub_index = 0
-            min_counter = self.item_set_table_counter[min_sub_index]
-            min_last = self.item_set_table_end[min_sub_index]
+            min_sub_index :int = 0
+            min_counter :int = self.item_set_table_counter[min_sub_index]
+            min_last :int = self.item_set_table_end[min_sub_index]
             for counter in range(1, Vicar.MAX_RETRY):
                 if min_counter > self.item_set_table_counter[counter]:
                     min_sub_index = counter
@@ -196,9 +194,9 @@ class Vicar:
                     index_list[count] = self.SIZE_OF_TABLE
                 count += 1
                 return count
-            count_nega = recursion(item_set, n + 1, count, index_list, time_data)
-            tmp = Vicar.set_nth_item_a_wildcard(item_set, n)
-            count_next = recursion(item_set, n + 1, count_nega, index_list, time_data)
+            count_nega :int = recursion(item_set, n + 1, count, index_list, time_data)
+            tmp : bytearray = Vicar.set_nth_item_a_wildcard(item_set, n)
+            count_next :int = recursion(item_set, n + 1, count_nega, index_list, time_data)
             Vicar.restore_nth_item(item_set, n, tmp)
             for i in range(count_next - count_nega):
                 calculate_cardinality(index_list[count_nega + i], index_list[count + i], n)
@@ -207,8 +205,7 @@ class Vicar:
         if is_satisfied_a_constraint(line_item_set):
             recursion(line_item_set, 0, 0, [Vicar.SIZE_OF_TABLE] * 2 ** Vicar.N, time_data)
         else:
-            print("Warning: not satisfied a constraint of input data( line no = {}".format(self.line_counter),
-                  file=sys.stderr)
+            sys.stderr.write("Warning: not satisfied a constraint of input data( line no = {} )\n".format(self.line_counter))
         self.line_counter += 1
 
 
