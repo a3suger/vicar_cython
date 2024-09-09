@@ -1,10 +1,13 @@
+#cython: language_level=3
+
 import hashlib
 import sys
 
 from typing import List
 
 
-def output_at_count_up(counter, index, item_set, stored_data, start, end, count):
+def output_at_count_up(line_number:int, index:int, item_set:bytearray, stored_data:bytearray,
+                       start:int, end:int , count:int) -> None:
     buf: str = ''
     for i in range(Vicar.N):
         raw_bytes = stored_data[i * Vicar.SIZE_OF_ITEM:(i + 1) * Vicar.SIZE_OF_ITEM]
@@ -13,11 +16,12 @@ def output_at_count_up(counter, index, item_set, stored_data, start, end, count)
             buf = buf + ' {:s}:{:8d}'.format("C", value)
         else:
             buf = buf + ' {:s}:{:8s}'.format("I", raw_bytes.hex())
-    print('OUT:{:10d} {:10d} {:10d} {:10d} {:5d} {}'.format(counter, index, start, end - start, count, buf))
+    print('OUT:{:10d} {:10d} {:10d} {:10d} {:5d} {}'.format(line_number, index, start, end - start, count, buf))
 
 
-def output_at_rewrite(counter, index, item_set, stored_date, start, end, count):
-    print('REW:{:10d} {:10d} {:10d} {:10d} {:5d}'.format(counter, index, start, end - start, count))
+def output_at_rewrite(line_number:int, index:int, item_set:bytearray, stored_date:bytearray,
+                      start:int , end:int, count:int) -> None:
+    print('REW:{:10d} {:10d} {:10d} {:10d} {:5d}'.format(line_number, index, start, end - start, count))
 
 
 def my_hash(rawdata :bytearray, value:int) -> int:
